@@ -1,4 +1,4 @@
-Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in project of language description. It is used by SIL Flex and Elan associated with tools for interlinearisation of texts.
+Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in project of language description. It is used by SIL Flex and Elan associated with tools for the interlinearisation of texts.
 
 # Installation
 
