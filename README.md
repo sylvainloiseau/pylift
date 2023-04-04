@@ -1,13 +1,10 @@
-Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in project of language description. It is used by SIL Flex and Elan associated with tools for the interlinearisation of texts.
+Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in language description projects. It is used by application such as [SIL Flex](https://software.sil.org/fieldworks/download/) and [Elan](https://archive.mpi.nl/tla/elan), associated with tools for the interlinearisation of texts.
 
 # Installation
-
 
 ```python
 pip install git+https://github.com/sylvainloiseau/pylift.git#egg=pylift
 ```
-
-
 
 # Usage
 
@@ -123,7 +120,7 @@ subfield,tww,,en,tpi,
 3,hei,2,swim,waswas,2
 ```
 
-Two options are available regarding the situation where one entry form has several glosses:
+Two options are available in order to deal with the situation where one entry has several fields related to it (such as several gloss, examples, etc.):
 
 - by default, the parent fields are repeated in order to match the number of child fields, as in the previous example: several lines have the *efe* form, to match the two senses given for this item ('road', 'skin').
 - Alternatively, with the `-aggregate` flag, child fields are aggregated
