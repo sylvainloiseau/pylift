@@ -64,7 +64,7 @@ See next section for the available fields.
 
 ## Available fields
 
-Many commands take an -f argument for mentioning the field(s) one is interested in. In order to have a list of available fields together with their definition, type:
+Many commands take an argument `-f`/`--field` for mentioning the field(s) one is interested in. A list of available fields together with their definition, is given with the `fields` command:
 
 ```console
 $ liftlex fields tests/data/FlexLiftExport.lift
