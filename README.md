@@ -1,4 +1,4 @@
-Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in project of language description. It is used by SIL Flex and Elan in associated with tools for interlinearisation of texts.
+Utilities for LIFT (Lexicon Interchange Format). [Lift](https://code.google.com/archive/p/lift-standard/) is a XML vocabulary for representing lexicon in project of language description. It is used by SIL Flex and Elan associated with tools for interlinearisation of texts.
 
 # Installation
 
@@ -28,7 +28,7 @@ Meta languages: tpi, en
 
 ## List values for a given field
 
-Print all the values for a given field. For instance, for extracting the list of head forms:
+Print all the values for a given field. For instance, for extracting the list of categories:
 
 ```console
 $ liftlex values --field=category tests/data/FlexLiftExport.lift
@@ -47,7 +47,7 @@ subfield
 183            Noun
 ```
 
-Note that column names are given on two rows: "field" and "subfield". Some fields have "subfield", i.e. several values for different language or type of information:
+Note that column headers are given on two rows: "field" and "subfield". Some fields have "subfield", i.e. several values for different language or type of information, for instance glosses in several languages:
 
 ```console
 $ liftlex values --field=gloss tests/data/FlexLiftExport.lift
