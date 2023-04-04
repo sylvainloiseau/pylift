@@ -84,7 +84,7 @@ Commands accept field names `ID`, `form`, `variantform`, etc. Each field is desc
 ## Frequency count
 
 ```
-liftlex count -f category tests/data/FlexLiftExport.lift 
+$ liftlex count -f category tests/data/FlexLiftExport.lift 
              0
 Noun       133
 Adverb       5
