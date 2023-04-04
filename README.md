@@ -47,7 +47,7 @@ subfield
 183            Noun
 ```
 
-Note that column headers are given on two rows: "field" and "subfield". Some fields have "subfield", i.e. several values for different language or type of information, for instance glosses in several languages:
+Note that column headers are given on two rows: "field" and "subfield". Some fields have "subfield", i.e. several values for different languages or types of information, for instance glosses in several languages:
 
 ```console
 $ liftlex values --field=gloss tests/data/FlexLiftExport.lift
