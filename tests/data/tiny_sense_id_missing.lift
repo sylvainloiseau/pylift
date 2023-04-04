@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lift producer="ELAN-Lexicon to LIFT Transformer" version="0.13">
+<entry dateCreated="2023-03-21T08:40:47.003Z" dateModified="2023-03-21T08:40:47.004Z" guid="1" >
+<lexical-unit>
+<form lang="tww">
+<text>efe</text>
+</form>
+</lexical-unit>
+<trait name="morph-type" value="stem"/>
+<sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="1">
+<grammatical-info value="n"/>
+<gloss>
+<text>road</text>
+</gloss>
+</sense>
+<sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="2">
+<grammatical-info value="n"/>
+<gloss>
+<text>skin</text>
+</gloss>
+</sense>
+</entry>
+<entry dateCreated="2023-03-21T08:40:47.003Z" dateModified="2023-03-21T08:40:47.004Z" guid="2" id="2">
+<lexical-unit>
+<form lang="tww">
+<text>hei</text>
+</form>
+</lexical-unit>
+<trait name="morph-type" value="stem"/>
+<sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="1">
+<grammatical-info value="v"/>
+<gloss>
+<text>paddle</text>
+</gloss>
+</sense>
+<sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="2">
+<grammatical-info value="v"/>
+<gloss>
+<text>swim</text>
+</gloss>
+</sense>
+</entry>
+</lift>

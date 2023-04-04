@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lift producer="ELAN-Lexicon to LIFT Transformer" version="0.13">
+<header>
+<description>
+<form lang="tuwari">
+<text>test lift format created by Elan</text>
+</form>
+</description>
+</header>
+<entry dateCreated="2023-03-21T08:40:47.003Z" dateModified="2023-03-21T08:40:47.004Z" guid="4ab7ba1d-9871-4753-a569-55fe8cb4c780" id="efla1_4ab7ba1d-9871-4753-a569-55fe8cb4c780">
+<lexical-unit>
+<form lang="tuwari">
+<text>efla</text>
+</form>
+</lexical-unit>
+<trait name="morph-type" value="stem"/>
+<sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="1">
+<grammatical-info value="n"/>
+<gloss>
+<text>canoe</text>
+</gloss>
+</sense>
+</entry>
+<entry dateCreated="2023-03-21T08:41:01.245Z" dateModified="2023-03-21T08:42:17.455Z" guid="28540825-965b-46ca-acb7-5206d942bc05" id="ife1_28540825-965b-46ca-acb7-5206d942bc05">
+<lexical-unit>
+<form lang="tuwari">
+<text>ife</text>
+</form>
+</lexical-unit>
+<trait name="morph-type" value="stem"/>
+<citation>
+<form lang="tuwari">
+<text>ife</text>
+</form>
+</citation>
+<sense id="9e478be1-78c0-4533-b3e1-74ff4b7fe0db" order="1">
+<grammatical-info value="adv"/>
+<gloss lang="english-lang-prop">
+<text>upstream</text>
+</gloss>
+<definition>
+<form lang="tuwari">
+<text>upstream river direction</text>
+</form>
+</definition>
+</sense>
+</entry>
+</lift>
