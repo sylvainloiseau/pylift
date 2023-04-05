@@ -72,7 +72,7 @@ form                 lexical-unit/form      1      FieldType.UNIQUE_BY_OBJECT_LA
 variantform                       form      4      FieldType.UNIQUE_BY_OBJECT_LANG           True       .
 morphtype    trait[@name='morph-type']      1                     FieldType.UNIQUE          False  @value
 category              grammatical-info      2                     FieldType.UNIQUE          False  @value
-gloss                            gloss      2  FieldType.MULTIPLE_WITH_OBJECT_LANG           True  ./text
+gloss                            gloss      2  FieldType.MULTIPLE_WITH_META_LANG           True  ./text
 definition             definition/form      2      FieldType.UNIQUE_BY_OBJECT_LANG           True       .
 ```
 

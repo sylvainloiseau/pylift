@@ -17,7 +17,7 @@ def test_summary(capsys, caplog, tmp_path):
 
 def test_fields(capsys, caplog, tmp_path):
     out = _run_cli(["liftlex", "fields", "tests/data/FlexLiftExport.lift"], capsys, caplog, tmp_path)
-    assert "lexical-unit/form" in out
+    assert "form" in out
 
 
 def test_count(capsys, caplog, tmp_path):

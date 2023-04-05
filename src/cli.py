@@ -1,6 +1,6 @@
 import argparse
 import sys
-from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType
+from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftField
 from pylift.table import TableSet, AggregatedTable
 import os
 import pandas as pd
@@ -24,45 +24,45 @@ def _validate_callback(arg):
 
 def _values_callback(arg):
     lift = LiftDoc(arg.filename)
-    field = arg.field
-    _check_if_fields_exist([field])
+    fieldname = arg.field
+    field = _get_field_if_field_exist(fieldname)
     df = lift.get_values(field)
     print(df, file=arg.output)
 
 
 def _count_callback(arg):
-    field = arg.field
-    _check_if_fields_exist([field])
+    fieldname = arg.field
+    field = _get_field_if_field_exist(fieldname)
     lift = LiftDoc(arg.filename)
-    has_subfield = LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_OBJECT_LANG \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_META_LANG \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_TYPE \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.MULTIPLE_WITH_OBJECT_LANG
+    has_subfield = field.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
+                   or field.field_type == FieldType.UNIQUE_BY_META_LANG \
+                   or field.field_type == FieldType.UNIQUE_BY_TYPE \
+                   or field.field_type == FieldType.MULTIPLE_WITH_META_LANG
     if has_subfield and not arg.subfield:
-        _exit_with_error_msg(f"The field '{field}' need a --subfield argument")
+        _exit_with_error_msg(f"The field '{field.name}' need a --subfield argument")
     elif not has_subfield and arg.subfield:
-        _exit_with_error_msg(f"The field '{field}' does not have subfield (it can't take a --subfield argument)")
+        _exit_with_error_msg(f"The field '{field.name}' does not have subfield (it can't take a --subfield argument)")
     if not arg.subfield:
         freq = lift.get_frequencies(field, arg.subfield)
     else:
         freq_by_subfield = lift.get_frequencies(field)
         if arg.subfield not in freq_by_subfield:
             _exit_with_error_msg(
-                f"The field '{field}' have no '{arg.subfield}' subfield. Possible subfield(s): {', '.join(freq_by_subfield.keys())}")
+                f"The field '{field.name}' have no '{arg.subfield}' subfield. Possible subfield(s): {', '.join(freq_by_subfield.keys())}")
         freq = freq_by_subfield[arg.subfield]
     df = pd.DataFrame.from_dict(freq, orient="index")
     print(df, file=arg.output)
 
 
 def _get_subfield_callback(arg):
-    field = arg.field
-    _check_if_fields_exist([field])
-    has_subfield = LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_OBJECT_LANG \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_META_LANG \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.UNIQUE_BY_TYPE \
-                   or LiftVocabulary.LIFT_FIELD_SPEC[field]["unique"] == FieldType.MULTIPLE_WITH_OBJECT_LANG
+    fieldname = arg.field
+    field = _get_field_if_field_exist(fieldname)
+    has_subfield = field.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
+                   or field.field_type == FieldType.UNIQUE_BY_META_LANG \
+                   or field.field_type == FieldType.UNIQUE_BY_TYPE \
+                   or field.field_type == FieldType.MULTIPLE_WITH_META_LANG
     if not has_subfield:
-        _exit_with_error_msg(f"The field {field} does not accept subfield")
+        _exit_with_error_msg(f"The field {field.name} does not accept subfield")
     lift = LiftDoc(arg.filename)
     v = lift.get_values(field)
     subfields = list(v.columns.get_level_values(1))
@@ -73,9 +73,9 @@ def _get_subfield_callback(arg):
 def _convert_callback(arg):
     LOGGER.info("in _convert_callback")
     lift = LiftDoc(arg.filename)
-    fields: List[str] = arg.field.split(",")  # list since nargs
-    _check_if_fields_exist(fields)
-    LOGGER.info(", ".join(fields))
+    fieldnames: List[str] = arg.field.split(",")  # list since nargs
+    fields = _get_fields_if_fields_exist(fieldnames)
+    LOGGER.info(", ".join(fieldnames))
     if arg.aggresep == ",":
         _exit_with_error_msg(
             f"Can't used {arg.aggresep} as aggregation (secondary) separator (it is the value separator in CSV)")
@@ -122,9 +122,16 @@ def _exit_with_error_msg(msg):
     sys.exit()
 
 
-def _check_if_fields_exist(fields):
-    if not set(fields).issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
-        _exit_with_error_msg('Unknown key: %r' % sorted(set(fields).difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
+def _get_fields_if_fields_exist(fieldnames) -> List[LiftField]:
+    if not set(fieldnames).issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
+        _exit_with_error_msg('Unknown field(s): %r' % sorted(set(fieldnames).difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
+    return [LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
+
+
+def _get_field_if_field_exist(fieldname) -> LiftField:
+    if not fieldname in LiftVocabulary.LIFT_FIELD_SPEC:
+        _exit_with_error_msg("Unknown field: '{fieldname}'")
+    return LiftVocabulary.LIFT_FIELD_SPEC[fieldname]
 
 
 def liftlex():

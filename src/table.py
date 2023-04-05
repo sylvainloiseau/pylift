@@ -1,4 +1,4 @@
-from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary
+from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
 from typing import List
 import pandas as pd
 from cldfbench import CLDFSpec, CLDFWriter
@@ -12,35 +12,32 @@ class TableSet:
   A representation of the dictionary as a set of linked tables, each representing a lift level (:class:`LiftLevel`).
   """
 
-    def __init__(self, lift: LiftDoc, fields: List[str]):
+    def __init__(self, lift: LiftDoc, fields: List[LiftField]):
         """
     Create a table set defined by a specification of the kind of data to be extracted from a lift document.
     :param lift: a lift document (:class: `LiftDoc`)
     :param fields: the data to extract from the dictionary (see `LiftVocabulary.LIFT_FIELD_SPEC`)
     """
         self.lift = lift
-        self.fields = set(fields)
+        self.fields = fields
 
         if fields is None or len(fields) < 1:
             raise ValueError("No field received")
-
-        if not self.fields.issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
-            raise ValueError('Unknown key: %r' % sorted(self.fields.difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
 
         # all_levels =[e for e in LiftLevel]
         # from low to top levels
         all_levels_sorted = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
 
         self.fields_by_level = {
-            l: [f for f in fields if LiftVocabulary.LIFT_FIELD_SPEC[f]["level"] == l]
-            for l in all_levels_sorted
+            level: [field for field in fields if field.level == level]
+            for level in all_levels_sorted
         }
-        used_level = [l for l in all_levels_sorted if len(self.fields_by_level[l]) > 0]
+        used_levels = [level for level in all_levels_sorted if len(self.fields_by_level[level]) > 0]
 
-        self.tables_by_level = {l: None for l in used_level}
+        self.tables_by_level = {u_level: None for u_level in used_levels}
 
-        for level in used_level:
-            self._create_table(level)
+        for u_level in used_levels:
+            self._create_table(u_level)
 
     def get_level_table(self, level: LiftLevel) -> pd.DataFrame:
         return self.tables_by_level[level]
@@ -57,12 +54,12 @@ class TableSet:
         table.columns = pd.MultiIndex.from_arrays([[], []], names=["field", "subfield"])
 
         LOGGER.info(f"Creating table for level '{str(level)}'")
-        for f in self.fields_by_level[level]:
-            fvalue = self.lift.get_values(f)
+        for field in self.fields_by_level[level]:
+            fvalue = self.lift.get_values(field)
             assert len(fvalue) == len(table)
             # TODO: get_values() does not return list anymore
             if isinstance(fvalue, list):
-                table[f, ""] = fvalue
+                table[field.name, ""] = fvalue
             else:
                 # field           gloss
                 # lang               en
@@ -71,8 +68,8 @@ class TableSet:
                 # 1         skin ~ bark
                 # 2      paddle ~ drift
                 # 3         swim ~ wash
-                table = table.join(fvalue, rsuffix=f)  # left join, on index value
-            LOGGER.info(f"field '{f}' added with {fvalue.shape[0]} values")
+                table = table.join(fvalue, rsuffix=field)  # left join, on index value
+            LOGGER.info(f"field '{field.name}' added with {fvalue.shape[0]} values")
 
         # add id of parent on each row
         if level != LiftLevel.ENTRY:
