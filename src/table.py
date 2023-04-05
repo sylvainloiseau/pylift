@@ -1,5 +1,5 @@
 from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
-from typing import List
+from typing import List, Dict
 import pandas as pd
 from cldfbench import CLDFSpec, CLDFWriter
 import logging
@@ -18,23 +18,22 @@ class TableSet:
     :param lift: a lift document (:class: `LiftDoc`)
     :param fields: the data to extract from the dictionary (see `LiftVocabulary.LIFT_FIELD_SPEC`)
     """
-        self.lift = lift
-        self.fields = fields
+        self.lift: LiftDoc = lift
+        self.fields: List[LiftField] = fields
 
         if fields is None or len(fields) < 1:
             raise ValueError("No field received")
 
-        # all_levels =[e for e in LiftLevel]
-        # from low to top levels
-        all_levels_sorted = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
+        # TODO: duplicated in AggregatedTable
+        all_levels_sorted: List[LiftLevel] = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
 
-        self.fields_by_level = {
+        self.fields_by_level: Dict[LiftLevel, List[LiftField]] = {
             level: [field for field in fields if field.level == level]
             for level in all_levels_sorted
         }
-        used_levels = [level for level in all_levels_sorted if len(self.fields_by_level[level]) > 0]
+        used_levels: List[LiftLevel] = [level for level in all_levels_sorted if len(self.fields_by_level[level]) > 0]
 
-        self.tables_by_level = {u_level: None for u_level in used_levels}
+        self.tables_by_level: Dict[LiftLevel, pd.DataFrame] = {u_level: None for u_level in used_levels}
 
         for u_level in used_levels:
             self._create_table(u_level)
@@ -56,7 +55,7 @@ class TableSet:
         LOGGER.info(f"Creating table for level '{str(level)}'")
         for field in self.fields_by_level[level]:
             fvalue = self.lift.get_values(field)
-            assert len(fvalue) == len(table)
+            assert len(fvalue) == len(table), f"The field '{field.name}' contains {len(fvalue)} values, while its parent nodes have {n} occurrences"
             # TODO: get_values() does not return list anymore
             if isinstance(fvalue, list):
                 table[field.name, ""] = fvalue
@@ -88,8 +87,8 @@ class AggregatedTable:
   """
 
     def __init__(self, table_set: TableSet, aggregate: bool = False, inner_sep=";"):
-        self.table_set = table_set
-        self.inner_sep = inner_sep
+        self.table_set: TableSet = table_set
+        self.inner_sep: str = inner_sep
 
         if (len(self.table_set.fields_by_level[LiftLevel.VARIANT]) > 0) and (
                 len(self.table_set.fields_by_level[LiftLevel.SENSE]) > 0):
@@ -97,23 +96,23 @@ class AggregatedTable:
                 "Cannot create table with data from both senses and variantes (several senses and several variants "
                 "can exist for an entry)")
 
-        # all_levels =[e for e in LiftLevel]
-        # from low to top levels
-        # TODO: duplicated
-        all_levels_sorted = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
+        # Order the levels from innermost to outermost
+        all_levels_sorted: List[LiftLevel] = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
+        # Filter to levels actually used in this AggregatedTable
+        used_levels_sorted: List[LiftLevel] = [level for level in all_levels_sorted if level in table_set.tables_by_level]
 
-        levels_sorted = [l for l in all_levels_sorted if l in table_set.tables_by_level]
-        tables_sorted = [table_set.tables_by_level[l] for l in levels_sorted]
+        tables_sorted: List[pd.DataFrame] = [table_set.tables_by_level[l] for l in used_levels_sorted]
 
+        self.res: pd.DataFrame
         if len(table_set.tables_by_level) == 1:
             self.res = tables_sorted[0]
             return
 
-        merged = None
+        merged: pd.DataFrame
         for i, t in enumerate(tables_sorted):  # enumerate starts at 0
             if i + 1 < len(tables_sorted):  # if this is not the last table
                 if aggregate:
-                    t = self._group_by_parent_id(levels_sorted[i])
+                    t = self._group_by_parent_id(used_levels_sorted[i])
                 merged = tables_sorted[i + 1].merge(t, left_on="ID", right_on="parent_id")
         self.res = merged
 

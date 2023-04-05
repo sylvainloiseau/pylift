@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.FileHandler(os.path.expanduser(Path("~/.pylift.log"))))
 
 
-def _validate_callback(arg):
+def _validate_callback(arg: argparse.Namespace) -> None:
     lift = LiftDoc(arg.filename)
     try:
         res = lift.validation()
@@ -22,7 +22,7 @@ def _validate_callback(arg):
     print("Dictionary is valid")
 
 
-def _values_callback(arg):
+def _values_callback(arg: argparse.Namespace) -> None:
     lift = LiftDoc(arg.filename)
     fieldname = arg.field
     field = _get_field_if_field_exist(fieldname)
@@ -30,7 +30,7 @@ def _values_callback(arg):
     print(df, file=arg.output)
 
 
-def _count_callback(arg):
+def _count_callback(arg: argparse.Namespace) -> None:
     fieldname = arg.field
     field = _get_field_if_field_exist(fieldname)
     lift = LiftDoc(arg.filename)
@@ -54,7 +54,7 @@ def _count_callback(arg):
     print(df, file=arg.output)
 
 
-def _get_subfield_callback(arg):
+def _get_subfield_callback(arg: argparse.Namespace) -> None:
     fieldname = arg.field
     field = _get_field_if_field_exist(fieldname)
     has_subfield = field.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
@@ -70,7 +70,7 @@ def _get_subfield_callback(arg):
         print(subfield, file=arg.output)
 
 
-def _convert_callback(arg):
+def _convert_callback(arg: argparse.Namespace) -> None:
     LOGGER.info("in _convert_callback")
     lift = LiftDoc(arg.filename)
     fieldnames: List[str] = arg.field.split(",")  # list since nargs
@@ -95,13 +95,13 @@ def _convert_callback(arg):
             _exit_with_error_msg(f"Unknown output type: '{arg.format}'")
 
 
-def _fields_callback(arg):
+def _fields_callback(arg: argparse.Namespace) -> None:
     fields_spec = LiftVocabulary.LIFT_FIELD_SPEC
     df = pd.DataFrame.from_dict(fields_spec, orient="index")
     print(df, file=arg.output)
 
 
-def _summary_callback(arg):
+def _summary_callback(arg: argparse.Namespace) -> None:
     lift = LiftDoc(arg.filename)
 
     for level, level_name in zip(
@@ -116,25 +116,25 @@ def _summary_callback(arg):
     print(f"Meta languages: {', '.join(mlang)}")
 
 
-def _exit_with_error_msg(msg):
+def _exit_with_error_msg(msg: str) -> None:
     LOGGER.warning(msg)
     print(msg)
     sys.exit()
 
 
-def _get_fields_if_fields_exist(fieldnames) -> List[LiftField]:
+def _get_fields_if_fields_exist(fieldnames: List[str]) -> List[LiftField]:
     if not set(fieldnames).issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
         _exit_with_error_msg('Unknown field(s): %r' % sorted(set(fieldnames).difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
     return [LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
 
 
-def _get_field_if_field_exist(fieldname) -> LiftField:
+def _get_field_if_field_exist(fieldname: str) -> LiftField:
     if not fieldname in LiftVocabulary.LIFT_FIELD_SPEC:
         _exit_with_error_msg("Unknown field: '{fieldname}'")
     return LiftVocabulary.LIFT_FIELD_SPEC[fieldname]
 
 
-def liftlex():
+def liftlex() -> None:
     # Main level
     parser = argparse.ArgumentParser(description='Utilities for LIFT (lexicon interchange format) lexicon.')
     parser.add_argument('--verbose', '-v', help='output detailled information', required=False, action='store_true')
@@ -209,5 +209,5 @@ def liftlex():
         LOGGER.info(f"Argument: {arg}, / {getattr(argument, arg)}")
 
     if not os.access(argument.filename, os.R_OK):
-        raise _exit_with_error_msg(f"{argument.filename} is not readable")
+        _exit_with_error_msg(f"{argument.filename} is not readable")
     argument.func(argument)
