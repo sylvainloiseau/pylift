@@ -1,4 +1,4 @@
-from pylift.lift import LiftDoc, LiftLevel, LiftField, LiftVocabulary
+from lift import LiftDoc, LiftLevel, LiftField, LiftVocabulary
 import pytest
 import lxml.etree as ET
 from typing import List, Dict
@@ -9,7 +9,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 
-def test_get_frequencies_wo_subfield(caplog):
+def test_get_frequencies_wo_subfield(caplog) -> None:
     """
    Without the subfield arg, must return a dict {subflied -> collections.Counter}
    """
@@ -25,7 +25,7 @@ def test_get_frequencies_wo_subfield(caplog):
     assert counter["efe"] == 1
 
 
-def test_get_frequencies_with_subfield():
+def test_get_frequencies_with_subfield() -> None:
     """
    Without the subfield arg, must return a dict {subflied -> collections.Counter}
    """
@@ -36,13 +36,13 @@ def test_get_frequencies_with_subfield():
     assert counter["efe"] == 1
 
 
-def test_get_frequencies_with_exception():
+def test_get_frequencies_with_exception() -> None:
     lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
     with pytest.raises(Exception):
         counter = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC["form"], "not_existing_subfield")
 
 
-def test_get_value(capsys, tmp_path):
+def test_get_value(capsys, tmp_path) -> None:
     lift: LiftDoc = LiftDoc("tests/data/FlexLiftExport.lift")
     assert lift.get_n(LiftLevel.ENTRY) == 182
 
@@ -59,7 +59,7 @@ def test_get_value(capsys, tmp_path):
 #    #  print(val, file=f)
 #    assert len(val) == 184
 
-def test__test_singleton_inner_list():
+def test__test_singleton_inner_list() -> None:
     l1 = [["un"], ["deux"]]
     l2 = [["un", "unbis"], ["deux", "deuxbis"]]
 
@@ -68,15 +68,26 @@ def test__test_singleton_inner_list():
 
     LiftDoc._test_singleton_inner_list(l1)
 
+def test__example_empty() -> None:
+    lift: LiftDoc = LiftDoc("tests/data/tiny_example_empty.lift")
+    f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["example"])
+    n = lift.get_n(LiftLevel.EXAMPLE)
+    assert len(f) == n
 
-def test__test_missing_entry_id():
+def test__example() -> None:
+    lift: LiftDoc = LiftDoc("tests/data/tiny_with_example.lift")
+    f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["example"])
+    n = lift.get_n(LiftLevel.EXAMPLE)
+    assert len(f) == n
+
+def test__test_missing_entry_id() -> None:
     lift: LiftDoc = LiftDoc("tests/data/tiny_sense_id_missing.lift")
 
     with pytest.raises(Exception):
         lift.get_parent_id(LiftLevel.SENSE)
 
 
-def test_create_records():
+def test_create_records() -> None:
     doc_string = """<lift>
     <entry>
      <note type="foobla">blabla</note>
@@ -109,7 +120,7 @@ def test_create_records():
     assert records[0][0] == 0
 
 
-def test__aggregate_values_with_same_key():
+def test__aggregate_values_with_same_key() -> None:
     x: List[List[Dict[str, str]]] = [[{"lang": "eng", "value": "note1"}, {"lang": "eng", "value": "note2"}],
                                      [{"lang": "eng", "value": "note3"}, {"lang": "eng", "value": "note4"},
                                       {"lang": "fra", "value": "note5"}]]
@@ -120,7 +131,7 @@ def test__aggregate_values_with_same_key():
     assert "note1/note2" in str(y)
 
 
-def test__get_values_UNIQUE():
+def test__get_values_UNIQUE() -> None:
     lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
     x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
     assert len(x) == lift.get_n(LiftLevel.ENTRY)
@@ -128,7 +139,7 @@ def test__get_values_UNIQUE():
     # assert isinstance(x[0], str)
 
 
-def test__get_values_UNIQUE_BY_OBJECT_LANG():
+def test__get_values_UNIQUE_BY_OBJECT_LANG() -> None:
     lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
     x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["form"])
     assert len(x) == lift.get_n(LiftLevel.ENTRY)
@@ -136,7 +147,7 @@ def test__get_values_UNIQUE_BY_OBJECT_LANG():
     assert x.iloc[0][("form", "tww")] == "efe"
 
 
-def test__get_values_MULTIPLE_WITH_META_LANG():
+def test__get_values_MULTIPLE_WITH_META_LANG() -> None:
     lift: LiftDoc = LiftDoc("tests/data/tiny_with_multiple_gloss.lift", inner_sep=" ~ ")
     x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["gloss"])
     assert isinstance(x, pd.DataFrame)

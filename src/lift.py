@@ -1,5 +1,5 @@
 from lxml import etree as ET
-from typing import Union, List, Tuple, Dict, Set
+from typing import Union, List, Tuple, Dict, Set, cast
 from io import StringIO
 import pkgutil
 import collections
@@ -7,6 +7,7 @@ from enum import Enum, IntEnum
 from dataclasses import dataclass
 import pandas as pd
 import logging
+import os
 
 LOGGER = logging.getLogger(__name__)
 
@@ -76,10 +77,10 @@ class LiftField:
     mixed_content: bool
 
 class LiftVocabulary:
-    LIFT_LEVEL_SPEC = {
+    LIFT_LEVEL_SPEC: Dict[LiftLevel, Dict[str, Union[str, LiftLevel]]] = {
         LiftLevel.ENTRY: {
             "xpath": "/lift/entry",
-            "parent": None
+            "parent": ""
         },
         LiftLevel.SENSE: {
             "xpath": "/lift/entry/sense",
@@ -105,62 +106,13 @@ class LiftVocabulary:
         LiftField("morphtype",   "trait[@name='morph-type']", "@value", LiftLevel.ENTRY,   FieldType.UNIQUE,                False),
         LiftField("category",    "grammatical-info",          "@value", LiftLevel.SENSE,   FieldType.UNIQUE,                False),
         LiftField("gloss",       "gloss",                     "./text", LiftLevel.SENSE,   FieldType.MULTIPLE_WITH_META_LANG, True),
-        LiftField("definition",  "definition/form",           ".",      LiftLevel.SENSE,   FieldType.UNIQUE_BY_OBJECT_LANG, True)
+        LiftField("definition",  "definition/form",           ".",      LiftLevel.SENSE,   FieldType.UNIQUE_BY_META_LANG,   True),
+        LiftField("example",     "./form",                    "./text", LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_OBJECT_LANG, True),
+        LiftField("ex_source",     ".",                       "@source", LiftLevel.EXAMPLE, FieldType.UNIQUE, True),
+        LiftField("translation", "./translation/form",        "./text", LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_META_LANG, True)
     ]
 
     LIFT_FIELD_SPEC = {field.name: field for field in LIFT_FIELD_SPEC_LIST}
-
-    # LIFT_FIELD_SPEC = {
-    #     "ID": {
-    #         "xpath": ".",
-    #         "level": LiftLevel.ENTRY,
-    #         "unique": FieldType.UNIQUE,
-    #         "mixed_content": False,
-    #         "value": "@id",
-    #     },
-    #     "form": {
-    #         "xpath": "lexical-unit/form",  # /text/text()",
-    #         "level": LiftLevel.ENTRY,
-    #         "unique": FieldType.UNIQUE_BY_OBJECT_LANG,
-    #         "mixed_content": True,
-    #         "value": "text",
-    #     },
-    #     "variantform": {
-    #         "xpath": "form",  # /text/text()",
-    #         "level": LiftLevel.VARIANT,
-    #         "unique": FieldType.UNIQUE_BY_OBJECT_LANG,
-    #         "mixed_content": True,
-    #         "value": ".",
-    #     },
-    #     "morphtype": {
-    #         "xpath": "trait[@name='morph-type']",
-    #         "level": LiftLevel.ENTRY,
-    #         "unique": FieldType.UNIQUE,
-    #         "mixed_content": False,
-    #         "value": "@value",
-    #     },
-    #     "category": {
-    #         "xpath": "grammatical-info",
-    #         "level": LiftLevel.SENSE,
-    #         "unique": FieldType.UNIQUE,
-    #         "mixed_content": False,
-    #         "value": "@value",
-    #     },
-    #     "gloss": {
-    #         "xpath": "gloss",
-    #         "level": LiftLevel.SENSE,
-    #         "unique": FieldType.MULTIPLE_WITH_META_LANG,
-    #         "mixed_content": True,
-    #         "value": "./text",
-    #     },
-    #     "definition": {
-    #         "xpath": "definition/form",
-    #         "level": LiftLevel.SENSE,
-    #         "unique": FieldType.UNIQUE_BY_OBJECT_LANG,
-    #         "mixed_content": True,
-    #         "value": ".",
-    #     },
-    # }
 
 
 class LiftDoc:
@@ -177,16 +129,16 @@ class LiftDoc:
     :param validate: `bool` flag signaling whether to validate the document
     """
         self.filename: str = filename
-        self.inner_sep = inner_sep
-        self.dictionary = ET.parse(self.filename)
-        self._cached_nodes_by_level: Dict[LiftLevel: List[ET.Element]] = {}
-        self.object_languages = set(self.dictionary.xpath("/lift/entry//form/@lang"))
-        self.meta_languages = set(self.dictionary.xpath("/lift/entry//*[local-name() != 'form']/@lang"))
+        self.inner_sep: str = inner_sep
+        self.dictionary: ET._ElementTree = ET.parse(self.filename)
+        self._cached_nodes_by_level: Dict[LiftLevel, List[ET.Element]] = {}
+        self.object_languages: Set[str] = set(self.dictionary.xpath("/lift/entry//form/@lang"))
+        self.meta_languages: Set[str] = set(self.dictionary.xpath("/lift/entry//*[local-name() != 'form']/@lang"))
 
         if validate:
             self.validation()
 
-    def get_frequencies(self, field: LiftField, subfield: str = None) -> Union[
+    def get_frequencies(self, field: LiftField, subfield: str = "") -> Union[
         collections.Counter, Dict[str, collections.Counter]]:
         """
     :param field: the field used for fetching values
@@ -261,8 +213,7 @@ class LiftDoc:
 
         # The xpath expression for retreiving the actual textual values
         # for each field element.
-        field_value_xpath = field.value_xpath
-        field_value_xpath = f"string({field_value_xpath})"
+        field_value_xpath = f"string({field.value_xpath})"
 
         # Case where the returned DataFrame will always have a single column:
         # either the field has one element per entry (`FieldType.UNIQUE`),
@@ -380,20 +331,27 @@ class LiftDoc:
     @staticmethod
     def _create_records(nodes_by_level: List[List[ET.Element]], key_xpath: str, value_xpath: str) -> List[
         Tuple[int, str, str]]:
-        return [
-            (i, str(e.xpath(key_xpath)), str(e.xpath(value_xpath)))
+        # Take care of cases were a node level exists but is empty, such as:
+        # <example>
+        # </example>
+        # This create an empty list in nodes_by_level : [[ET.Element], [], [ET.Element]]
+        # And this empty list cannot disapear: it will produce a mismatch between number of level occurrences
+        # and number of values
+        res = [
+            (i, "", "") if isinstance(e, str) else (i, str(e.xpath(key_xpath)), str(e.xpath(value_xpath))) 
             for i, nodes in enumerate(nodes_by_level)
-            for e in nodes
+            for e in (nodes if len(nodes) > 0 else "-") #TODO the bug is here
         ]  # each index is not represented anymore
+        return res
 
     @staticmethod
-    def _aggregate_values_with_same_key(values: List[List[Dict[str, str]]], key_name: str, key_values: List[str], sep):
-        res = [None] * len(values)
-        for i, node in enumerate(values):
-            new_node = []
+    def _aggregate_values_with_same_key(values: List[List[Dict[str, str]]], key_name: str, key_values: List[str], sep) -> List[List[Dict[str, str]]]:
+        res: List[List[Dict[str, str]]] = [None] * len(values)
+        for i, nodes in enumerate(values):
+            new_node:List[Dict[str, str]] = []
             for l in key_values:
                 current_l = ""
-                for j, o in enumerate(node):
+                for j, o in enumerate(nodes):
                     if o[key_name] == l:
                         current_l = current_l + sep + o["value"]
                 new_node.append({"lang": l, "value": current_l})
@@ -401,11 +359,11 @@ class LiftDoc:
         return res
 
     @staticmethod
-    def _check_uniqueness(values, key:str, field:LiftField):
-        check = [[x[key] for x in sublist] for sublist in values]
-        check = [len(sublist) != len(set(sublist)) for sublist in check]
-        check = [i for i, v in enumerate(check) if v]
-        if len(check) > 0:
+    def _check_uniqueness(pairs_for_nodes_for_nodes: List[List[Dict[str, str]]], key:str, field:LiftField) -> None:
+        values_for_nodes_for_nodes: List[List[str]] = [[x[key] for x in sublist] for sublist in pairs_for_nodes_for_nodes]
+        is_not_unique_for_nodes_for_nodes: List[bool] = [len(sublist) != len(set(sublist)) for sublist in values_for_nodes_for_nodes]
+        index_for_nodes_for_nodes: List[int] = [i for i, v in enumerate(is_not_unique_for_nodes_for_nodes) if v]
+        if len(index_for_nodes_for_nodes) > 0:
             raise Exception("Duplicate values for field {field.name} at nodes { check }")
 
     @staticmethod
@@ -416,7 +374,11 @@ class LiftDoc:
             raise Exception(f"{len(index)} non single value found: {' / '.join(values[index[0]])}")
 
     def validation(self) -> bool:
-        schema_string = pkgutil.get_data(__name__, "schema/lift.rng").decode('UTF-8')
+        schema = pkgutil.get_data(__name__, "schema/lift.rng")
+        if schema == None:
+            raise Exception(f"Can't read lift schema (located inside the pylift python package) for validation.")
+        schema = cast(bytes, schema) # help mypy with type inference
+        schema_string = schema.decode('UTF-8')
         validator = ET.RelaxNG(StringIO(schema_string))
         try:
             validator.assertValid(self.dictionary)
