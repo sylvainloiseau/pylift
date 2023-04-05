@@ -1,0 +1,7 @@
+.mypy_cache/
+.tox/
+pylift.egg-info/
+cldf
+.idea
+pylift.egg-info
+tests/__pycache__
