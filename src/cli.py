@@ -98,7 +98,7 @@ def _convert_callback(arg: argparse.Namespace) -> None:
 def _fields_callback(arg: argparse.Namespace) -> None:
     fields_spec = LiftVocabulary.LIFT_FIELD_SPEC
     df = pd.DataFrame.from_dict(fields_spec, orient="index")
-    print(df, file=arg.output)
+    print(df.to_string(index=False), file=arg.output)
 
 
 def _summary_callback(arg: argparse.Namespace) -> None:
@@ -140,7 +140,6 @@ def liftlex() -> None:
     parser.add_argument('--verbose', '-v', help='output detailled information', required=False, action='store_true')
     parser.add_argument('--output', '-o', help='output file (or standard output if not specified)', nargs="?",
                         default=sys.stdout, type=argparse.FileType("w"))
-    # TODO : doc argparse : defaut sys
 
     # 1/
     command_subparser = parser.add_subparsers(title="subcommand", description="one valid subcommand",
@@ -181,7 +180,7 @@ def liftlex() -> None:
     convert.add_argument('--aggregate', '-g', help='aggregate rows on same object', action='store_true')
     convert.add_argument('--aggresep', '-p', help='the character for separating aggregated values', default=";",
                          required=False, type=str)
-    convert.add_argument('--dir', '-d', help='the directory for CLDFWordlist conversion', default=".",
+    convert.add_argument('--dir', '-d', help='the directory for CLDFWordlist conversion', default="",
                          required=False, type=str)
     convert.set_defaults(func=_convert_callback)
 
@@ -205,8 +204,8 @@ def liftlex() -> None:
         sys.argv.append('-h')
     argument = parser.parse_args()
 
-    for arg in vars(argument):
-        LOGGER.info(f"Argument: {arg}, / {getattr(argument, arg)}")
+    #for arg in vars(argument):
+    #    LOGGER.info(f"Argument: {arg}, / {getattr(argument, arg)}")
 
     if not os.access(argument.filename, os.R_OK):
         _exit_with_error_msg(f"{argument.filename} is not readable")

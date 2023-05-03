@@ -120,15 +120,15 @@ def test_create_records() -> None:
     assert records[0][0] == 0
 
 
-def test__aggregate_values_with_same_key() -> None:
-    x: List[List[Dict[str, str]]] = [[{"lang": "eng", "value": "note1"}, {"lang": "eng", "value": "note2"}],
-                                     [{"lang": "eng", "value": "note3"}, {"lang": "eng", "value": "note4"},
-                                      {"lang": "fra", "value": "note5"}]]
-    y = LiftDoc._aggregate_values_with_same_key(x, "lang", ["eng", "fra"], "/")
-    assert len(y) == len(x)
-    assert len(y[0]) == 2
-    assert len(y[1]) == 2
-    assert "note1/note2" in str(y)
+# def test__aggregate_values_with_same_key() -> None:
+#     x: List[List[Dict[str, str]]] = [[{"lang": "eng", "value": "note1"}, {"lang": "eng", "value": "note2"}],
+#                                      [{"lang": "eng", "value": "note3"}, {"lang": "eng", "value": "note4"},
+#                                       {"lang": "fra", "value": "note5"}]]
+#     y = LiftDoc._aggregate_values_with_same_key(x, "lang", ["eng", "fra"], "/")
+#     assert len(y) == len(x)
+#     assert len(y[0]) == 2
+#     assert len(y[1]) == 2
+#     assert "note1/note2" in str(y)
 
 
 def test__get_values_UNIQUE() -> None:

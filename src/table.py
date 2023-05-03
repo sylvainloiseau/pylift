@@ -108,7 +108,7 @@ class AggregatedTable:
             self.res = tables_sorted[0]
             return
 
-        merged: pd.DataFrame
+        merged: pd.DataFrame = pd.DataFrame()
         for i, t in enumerate(tables_sorted):  # enumerate starts at 0
             if i + 1 < len(tables_sorted):  # if this is not the last table
                 if aggregate:

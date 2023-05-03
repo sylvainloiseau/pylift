@@ -1,8 +1,5 @@
 import setuptools
 
-# https://packaging.python.org/en/latest/discussions/install-requires-vs-requirements/
-# https://python-packaging.readthedocs.io/en/latest/dependencies.html
-
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -31,13 +28,10 @@ setuptools.setup(
     install_requires=[
           'lxml>=4.6.3',
           'pytest>=6.2.5',
-#          'pympi-ling>=1.70.2',
           'pycldf>=1.34.1',
           'cldfbench>=1.13.0',
           'pandas>=1.3.5'
     ],
-    # For dependencies not on pyPI:
-    #dependency_links=['http://github.com/user/repo/tarball/master#egg=package-1.0']
     python_requires=">=3.7",
     entry_points = {
         'console_scripts': ['liftlex=pylift.cli:liftlex']

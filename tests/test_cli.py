@@ -1,4 +1,4 @@
-from pylift.cli import liftlex
+from cli import liftlex
 import sys
 import logging
 
@@ -37,18 +37,6 @@ def test_convert(capsys, caplog, tmp_path):
     assert "ID" in out
 
 
-def _run_cli(args, capsys, caplog, tmp_path):
-    try:
-        sys.argv = args
-        liftlex()
-    except SystemExit:
-        captured = capsys.readouterr()
-        print(captured.err)
-        assert False
-    captured = capsys.readouterr()
-    return captured.out
-
-
 def test_convert_tiny(capsys, caplog, tmp_path):  #
     out = _run_cli(["liftlex", "convert", "--field=ID,form,category", "--format=csv", "tests/data/tiny.lift"], capsys,
                    caplog, tmp_path)
@@ -70,3 +58,15 @@ def test_aggregate_not(capsys, caplog, tmp_path):
 def test_validate_callback(capsys, caplog, tmp_path):
     out = _run_cli(["liftlex", "validate", "tests/data/FlexLiftExport.lift"], capsys, caplog, tmp_path)
     assert "Dictionary is valid" in out
+
+
+def _run_cli(args, capsys, caplog, tmp_path):
+    try:
+        sys.argv = args
+        liftlex()
+    except SystemExit:
+        captured = capsys.readouterr()
+        print(captured.err)
+        assert False
+    captured = capsys.readouterr()
+    return captured.out
