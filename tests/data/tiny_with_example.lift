@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lift producer="ELAN-Lexicon to LIFT Transformer" version="0.13">
+    <entry dateCreated="2023-03-21T08:40:47.003Z" dateModified="2023-03-21T08:40:47.004Z" guid="1"
+        id="1">
+        <lexical-unit>
+            <form lang="tww">
+                <text>efe</text>
+            </form>
+        </lexical-unit>
+        <trait name="morph-type" value="stem" />
+        <sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="1">
+            <grammatical-info value="n" />
+            <gloss lang="en">
+                <text>road</text>
+            </gloss>
+            <gloss lang="tpi">
+                <text>rod</text>
+            </gloss>
+            <example source="2014.II. 48.1">
+                <form lang="tww"><text>a mamimo iefimo</text></form>
+                <translation type="Free translation">
+                    <form lang="tpi"><text>mi <span>shutim pik</span></text></form>
+                    <form lang="en"><text>I shoot a pig</text></form>
+                </translation>                    
+            </example>
+            <example source="2014.II. 48.1">
+                <form lang="tww"><text>a mamimo iafimo</text></form>
+                <translation type="Free translation">
+                    <form lang="tpi"><text>mi <span>shutim pik pinis</span></text></form>
+                    <form lang="en"><text>I shot a pig</text></form>
+                </translation>                    
+            </example>
+        </sense>
+        <sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="2">
+            <grammatical-info value="n" />
+            <gloss lang="en">
+                <text>skin</text>
+            </gloss>
+        </sense>
+    </entry>
+    <entry dateCreated="2023-03-21T08:40:47.003Z" dateModified="2023-03-21T08:40:47.004Z" guid="2"
+        id="2">
+        <lexical-unit>
+            <form lang="tww">
+                <text>hei</text>
+            </form>
+        </lexical-unit>
+        <trait name="morph-type" value="stem" />
+        <sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="1">
+            <grammatical-info value="v" />
+            <gloss lang="en">
+                <text>paddle</text>
+            </gloss>
+            <gloss lang="tpi">
+                <text>pulim</text>
+            </gloss>
+            <example source="2014.II. 48.1">
+                <form lang="tpi"><text>me mamimo iefimo</text></form>
+                <translation type="Free translation">
+                    <form lang="tpi"><text>you <span>shutim pik</span></text></form>
+                    <form lang="en"><text>you shoot a pig</text></form>
+                </translation>                    
+            </example>
+        </sense>
+        <sense id="4d420dc0-e6bc-47e9-b91b-4e7d91836054" order="2">
+            <grammatical-info value="v" />
+            <gloss lang="en">
+                <text>swim</text>
+            </gloss>
+            <gloss lang="tpi">
+                <text>waswas</text>
+            </gloss>
+        </sense>
+    </entry>
+</lift>
