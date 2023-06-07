@@ -10,7 +10,6 @@ import pandas as pd
 
 LOGGER = logging.getLogger(__name__)
 
-
 class FieldType(Enum):
     """
   Field types distinguished in the LIFT schema:
@@ -72,12 +71,12 @@ class LiftField:
 
   :param name: the name of the field, used for refering to the field from the command line or in
     outputs.
-  :param node_xpath: an XPath expression, relative to the level node, and pointing to the nodes containing the value.\
+  :param node_xpath: an XPath expression, relative to the level (see param level below), and pointing to the nodes containing the value.\
     For instance the gloss field belongs to the sense level and is accessed through the XPath `gloss` (or `./gloss`)
   :param value_xpath: an XPath expression that can be wrapped into the `string()` XPath function and will return the \
     text content we are interested in. The XPath is relative to `node_xpath` nodes. \
     For the "gloss" field, the content is in a `./text` node.
-  :param level: the level the field belongs to. The "gloss" field belongs to the sense level. See see :class:`LiftLevel`.
+  :param level: the level the field belongs to. The "gloss" field belongs to the sense level. See :class:`LiftLevel`.
   :param field_type: the LIFT Schema defined different field types. See :class:`FieldType`. For instance, the "gloss" field\
     is of type `FieldType.MULTIPLE_WITH_META_LANG`, which means that there is an `@lang` attribute on the nodes referred\
     to through `node_xpath` nodes (here, `gloss`) that this attribute contains a reference to a language used in the description\
@@ -160,7 +159,12 @@ class LiftVocabulary:
         LiftField("ex_translation", "./translation/form",        "./text",
                   LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_META_LANG,   True,
                   "translation of an example"
+                  ),
+        LiftField("semanticdomain", "./trait[@name = 'semantic-domain-ddp4']",        "@value",
+                  LiftLevel.SENSE, FieldType.MULTIPLE,   True,
+                  "Semantic domain ddp4"
                   )
+
     ]
 
     LIFT_FIELD_SPEC = {field.name: field for field in LIFT_FIELD_SPEC_LIST}
@@ -284,18 +288,19 @@ class LiftDoc:
         # but without `@lang` or `@type` to distinguish them, and the textual values are aggregated.
         if field.field_type in (FieldType.UNIQUE, FieldType.MULTIPLE):
 
+            # either retreive the value, or we add an empty string if the result set is empty.
+            values = [""] * len(field_nodes_by_level_nodes)
             if field.field_type == FieldType.UNIQUE:
                 # checking if each level element contains only one field element
                 LiftDoc._test_singleton_inner_list(field_nodes_by_level_nodes)
-                # either retreive the value, or we add an empty string if the result set is empty.
-                values = [""] * len(field_nodes_by_level_nodes)
                 for i, e in enumerate(field_nodes_by_level_nodes):
-                    values[i] = e[0].xpath(
-                        field_value_xpath) if len(e) > 0 else ""
+                    values[i] = e[0].xpath(field_value_xpath) if len(e) > 0 else ""
             elif field.field_type == FieldType.MULTIPLE:
                 # aggregate multiple values of `FieldType.MULTIPLE` field
-                values = [self.inner_sep.join(sublist) if len(sublist) > 0 else "" for sublist in
-                          field_nodes_by_level_nodes]
+                values = [self.inner_sep.join([str(e) for e in sublist]) if len(sublist) > 0 else "" for sublist in
+                        field_nodes_by_level_nodes]
+                for i, es in enumerate(field_nodes_by_level_nodes):
+                    values[i] = self.inner_sep.join([e.xpath(field_value_xpath) for e in es ]) if len(es) > 0 else "" 
             else:
                 raise Exception("I shouldn't be here")
 
