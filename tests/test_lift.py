@@ -1,4 +1,4 @@
-from lift import LiftDoc, LiftLevel, LiftField, LiftVocabulary
+from pylift.lift import LiftDoc, LiftLevel, LiftField, LiftVocabulary
 import pytest
 import lxml.etree as ET
 from typing import List, Dict

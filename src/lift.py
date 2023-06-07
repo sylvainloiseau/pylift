@@ -3,7 +3,7 @@ import collections
 import logging
 from typing import Union, List, Tuple, Dict, Set, cast
 from dataclasses import dataclass
-from enum import Enum, IntEnum
+from enum import Enum
 from io import StringIO
 from lxml import etree as ET
 import pandas as pd
@@ -50,7 +50,7 @@ class FieldType(Enum):
         return self.name
 
 
-class LiftLevel(IntEnum):
+class LiftLevel(Enum):
     """
    Level are main node types on which fields are attached
    """
@@ -130,23 +130,23 @@ class LiftVocabulary:
                   ),
         LiftField("morphtype",   "trait[@name='morph-type']", "@value",
                   LiftLevel.ENTRY,   FieldType.UNIQUE,                False,
-                  "morphological type of a lexem"
+                  "morph type of a lexem"
                   ),
         LiftField("category",    "grammatical-info",          "@value",
                   LiftLevel.SENSE,   FieldType.UNIQUE,                False,
-                  "category (part of speech) of a lexem"
+                  "part of speech of a lexem sense"
                   ),
         LiftField("gloss",       "gloss",                     "./text",
                   LiftLevel.SENSE,   FieldType.MULTIPLE_WITH_META_LANG, True,
-                  "gloss of a meaning of a lexem"
+                  "gloss of a lexem sense"
                   ),
         LiftField("definition",  "definition/form",           ".",
                   LiftLevel.SENSE,   FieldType.UNIQUE_BY_META_LANG,   True,
-                  "definition of a meaning of a lexem"
+                  "definition of a lexem sense"
                   ),
         LiftField("sense_n",     ".",                          "@order",
                   LiftLevel.SENSE,   FieldType.UNIQUE,   True,
-                  "number (for ordering) of a meaning of lexem."
+                  "number of lexem senses"
                   ),
         LiftField("example",     "./form",                    "./text",
                   LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_OBJECT_LANG, True,
