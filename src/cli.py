@@ -1,6 +1,6 @@
 import argparse
 import sys
-from .lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftField
+from .lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftFieldSpec
 from .table import TableSet, AggregatedTable
 import os
 import pandas as pd
@@ -132,13 +132,13 @@ def _exit_with_error_msg(msg: str) -> None:
     sys.exit()
 
 
-def _get_fields_if_fields_exist(fieldnames: List[str]) -> List[LiftField]:
+def _get_fields_if_fields_exist(fieldnames: List[str]) -> List[LiftFieldSpec]:
     if not set(fieldnames).issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
         _exit_with_error_msg('Unknown field(s): %r' % sorted(set(fieldnames).difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
     return [LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
 
 
-def _get_field_if_field_exist(fieldname: str) -> LiftField:
+def _get_field_if_field_exist(fieldname: str) -> LiftFieldSpec:
     if not fieldname in LiftVocabulary.LIFT_FIELD_SPEC:
         _exit_with_error_msg("Unknown field: '{fieldname}'")
     return LiftVocabulary.LIFT_FIELD_SPEC[fieldname]

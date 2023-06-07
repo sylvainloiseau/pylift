@@ -1,4 +1,4 @@
-from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
+from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftFieldSpec
 from pylift.table import TableSet, AggregatedTable
 import pytest
 import lxml.etree as ET
@@ -76,6 +76,6 @@ def test_merge_large(capsys, tmp_path) -> None:
    table.to_csv("test_aggr_large.csv")
 
 
-def _get_fields(fieldnames:List[str]) -> List[LiftField]:
+def _get_fields(fieldnames:List[str]) -> List[LiftFieldSpec]:
    return [ LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
 

@@ -64,7 +64,7 @@ class LiftLevel(Enum):
 
 
 @dataclass(frozen=True)
-class LiftField:
+class LiftFieldSpec:
     """
   A lift field (i.e. a piece of information in the dictionary, such as the forms of the entries,
   or the glosses of the senses, etc.). A field is defined as:
@@ -116,51 +116,51 @@ class LiftVocabulary:
     }
 
     LIFT_FIELD_SPEC_LIST = [
-        LiftField("ID",          ".",                         "@id",
+        LiftFieldSpec("ID",          ".",                         "@id",
                   LiftLevel.ENTRY,   FieldType.UNIQUE,                False,
                   "Id of an dictionary entry"
                   ),
-        LiftField("form",        "lexical-unit/form",         "text",
+        LiftFieldSpec("form",        "lexical-unit/form",         "text",
                   LiftLevel.ENTRY,   FieldType.UNIQUE_BY_OBJECT_LANG, True,
                   "lexem citation form"
                   ),
-        LiftField("variantform", "form",                      ".",
+        LiftFieldSpec("variantform", "form",                      ".",
                   LiftLevel.VARIANT, FieldType.UNIQUE_BY_OBJECT_LANG, True,
                   "variant form of a lexem"
                   ),
-        LiftField("morphtype",   "trait[@name='morph-type']", "@value",
+        LiftFieldSpec("morphtype",   "trait[@name='morph-type']", "@value",
                   LiftLevel.ENTRY,   FieldType.UNIQUE,                False,
                   "morph type of a lexem"
                   ),
-        LiftField("category",    "grammatical-info",          "@value",
+        LiftFieldSpec("category",    "grammatical-info",          "@value",
                   LiftLevel.SENSE,   FieldType.UNIQUE,                False,
                   "part of speech of a lexem sense"
                   ),
-        LiftField("gloss",       "gloss",                     "./text",
+        LiftFieldSpec("gloss",       "gloss",                     "./text",
                   LiftLevel.SENSE,   FieldType.MULTIPLE_WITH_META_LANG, True,
                   "gloss of a lexem sense"
                   ),
-        LiftField("definition",  "definition/form",           ".",
+        LiftFieldSpec("definition",  "definition/form",           ".",
                   LiftLevel.SENSE,   FieldType.UNIQUE_BY_META_LANG,   True,
                   "definition of a lexem sense"
                   ),
-        LiftField("sense_n",     ".",                          "@order",
+        LiftFieldSpec("sense_n",     ".",                          "@order",
                   LiftLevel.SENSE,   FieldType.UNIQUE,   True,
                   "number of lexem senses"
                   ),
-        LiftField("example",     "./form",                    "./text",
+        LiftFieldSpec("example",     "./form",                    "./text",
                   LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_OBJECT_LANG, True,
                   "text of an exemple"
                   ),
-        LiftField("ex_source",     ".",                       "@source",
+        LiftFieldSpec("ex_source",     ".",                       "@source",
                   LiftLevel.EXAMPLE, FieldType.UNIQUE,               True,
                   "source of an example"
                   ),
-        LiftField("ex_translation", "./translation/form",        "./text",
+        LiftFieldSpec("ex_translation", "./translation/form",        "./text",
                   LiftLevel.EXAMPLE, FieldType.UNIQUE_BY_META_LANG,   True,
                   "translation of an example"
                   ),
-        LiftField("semanticdomain", "./trait[@name = 'semantic-domain-ddp4']",        "@value",
+        LiftFieldSpec("semanticdomain", "./trait[@name = 'semantic-domain-ddp4']",        "@value",
                   LiftLevel.SENSE, FieldType.MULTIPLE,   True,
                   "Semantic domain ddp4"
                   )
@@ -196,7 +196,7 @@ class LiftDoc:
         if validate:
             self.validation()
 
-    def get_frequencies(self, field: LiftField, subfield: str = "") -> Union[
+    def get_frequencies(self, field: LiftFieldSpec, subfield: str = "") -> Union[
             collections.Counter, Dict[str, collections.Counter]]:
         """
         :param field: the field used for fetching values
@@ -256,7 +256,7 @@ class LiftDoc:
         """
         return self.meta_languages
     
-    def get_subfields(self, field: LiftField) -> Tuple[str, List[str]]:
+    def get_subfields(self, field: LiftFieldSpec) -> Tuple[str, List[str]]:
         """
         For a field having subfield, search actual values. For instance,
         for a field "form", the subfield is the language codes used in
@@ -278,7 +278,7 @@ class LiftDoc:
         subfield_name = v.columns.names[1]
         return (subfield_name, subfields)
 
-    def get_values(self, field: LiftField) -> pd.DataFrame:
+    def get_values(self, field: LiftFieldSpec) -> pd.DataFrame:
         """
         Compute the list of the values for a given field: the list of forms, or glosses, etc.
         :return: a :class:`pd.DataFrame` containing each value, together with the indice \

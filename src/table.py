@@ -1,4 +1,4 @@
-from .lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
+from .lift import LiftDoc, LiftLevel, LiftVocabulary, LiftFieldSpec
 from typing import List, Dict
 import pandas as pd
 from cldfbench import CLDFSpec, CLDFWriter
@@ -12,14 +12,14 @@ class TableSet:
   A representation of the dictionary as a set of linked tables, each representing a lift level (:class:`LiftLevel`).
   """
 
-    def __init__(self, lift: LiftDoc, fields: List[LiftField]):
+    def __init__(self, lift: LiftDoc, fields: List[LiftFieldSpec]):
         """
     Create a table set defined by a specification of the kind of data to be extracted from a lift document.
     :param lift: a lift document (:class: `LiftDoc`)
     :param fields: the data to extract from the dictionary (see `LiftVocabulary.LIFT_FIELD_SPEC`)
     """
         self.lift: LiftDoc = lift
-        self.fields: List[LiftField] = fields
+        self.fields: List[LiftFieldSpec] = fields
 
         if fields is None or len(fields) < 1:
             raise ValueError("No field received")
@@ -27,7 +27,7 @@ class TableSet:
         # TODO: duplicated in AggregatedTable
         all_levels_sorted: List[LiftLevel] = [LiftLevel.EXAMPLE, LiftLevel.SENSE, LiftLevel.VARIANT, LiftLevel.ENTRY]
 
-        self.fields_by_level: Dict[LiftLevel, List[LiftField]] = {
+        self.fields_by_level: Dict[LiftLevel, List[LiftFieldSpec]] = {
             level: [field for field in fields if field.level == level]
             for level in all_levels_sorted
         }
