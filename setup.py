@@ -7,13 +7,13 @@ setuptools.setup(
     name="pylift",
     author_email="sylvain.loiseau@univ-paris13.fr",
     author="Sylvain Loiseau",
-    version="0.0.1",
+    version="0.0.2",
     description="Utilities for the LIFT lexicon format (Lexicon interchange format)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.univ-paris13.fr/sylvain.loiseau/pylift",
+    url="https://github.com/sylvainloiseau/pylift",
     project_urls={
-        "Bug Tracker": "https://gitlab.univ-paris13.fr/sylvain.loiseau/pylift",
+        "Bug Tracker": "https://github.com/sylvainloiseau/pylift",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -24,7 +24,6 @@ setuptools.setup(
     package_data={"pylift": ["py.typed", 'src/schema']},
     include_package_data=True,
     packages=["pylift"],
-    #packages=setuptools.find_packages(where="src"),
     install_requires=[
           'lxml>=4.6.3',
           'pytest>=6.2.5',
