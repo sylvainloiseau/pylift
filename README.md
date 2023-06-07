@@ -66,14 +66,19 @@ Many commands take an argument `-f`/`--field` for mentioning the field(s) one is
 ```console
 $ liftlex fields tests/data/FlexLiftExport.lift
 
-                                 xpath  level                               unique  mixed_content   value
-ID                                   .      1                     FieldType.UNIQUE          False     @id
-form                 lexical-unit/form      1      FieldType.UNIQUE_BY_OBJECT_LANG           True    text
-variantform                       form      4      FieldType.UNIQUE_BY_OBJECT_LANG           True       .
-morphtype    trait[@name='morph-type']      1                     FieldType.UNIQUE          False  @value
-category              grammatical-info      2                     FieldType.UNIQUE          False  @value
-gloss                            gloss      2  FieldType.MULTIPLE_WITH_META_LANG           True  ./text
-definition             definition/form      2      FieldType.UNIQUE_BY_OBJECT_LANG           True       .
+          name                              node_xpath value_xpath   level              field_type  mixed_content                     description
+            ID                                       .         @id   ENTRY                  UNIQUE          False       Id of an dictionary entry
+          form                       lexical-unit/form        text   ENTRY   UNIQUE_BY_OBJECT_LANG           True             lexem citation form
+   variantform                                    form           . VARIANT   UNIQUE_BY_OBJECT_LANG           True         variant form of a lexem
+     morphtype               trait[@name='morph-type']      @value   ENTRY                  UNIQUE          False           morph type of a lexem
+      category                        grammatical-info      @value   SENSE                  UNIQUE          False part of speech of a lexem sense
+         gloss                                   gloss      ./text   SENSE MULTIPLE_WITH_META_LANG           True          gloss of a lexem sense
+    definition                         definition/form           .   SENSE     UNIQUE_BY_META_LANG           True     definition of a lexem sense
+       sense_n                                       .      @order   SENSE                  UNIQUE           True          number of lexem senses
+       example                                  ./form      ./text EXAMPLE   UNIQUE_BY_OBJECT_LANG           True              text of an exemple
+     ex_source                                       .     @source EXAMPLE                  UNIQUE           True            source of an example
+ex_translation                      ./translation/form      ./text EXAMPLE     UNIQUE_BY_META_LANG           True       translation of an example
+semanticdomain ./trait[@name = 'semantic-domain-ddp4']      @value   SENSE                MULTIPLE           True            Semantic domain ddp4
 ```
 
 Commands accept field names `ID`, `form`, `variantform`, etc. Each field is described by the XPath expression pointing at it, relatively to the node of a level (entry, sense). Other fields can be added.
