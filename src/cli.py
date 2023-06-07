@@ -57,7 +57,7 @@ def _count_callback(arg: argparse.Namespace) -> None:
             _exit_with_error_msg(f"The field '{field.name}' does not have subfield (it can't take a --subfield argument)")
         freq = lift.get_frequencies(field, arg.subfield)
     df = pd.DataFrame.from_dict(freq, orient="index")
-    if arg.output == sys.stdout and arg.output.isatty() and not arg.dir:
+    if arg.output == sys.stdout and arg.output.isatty():
         print(df, file=arg.output)
     else:
         df.to_csv(arg.output)
