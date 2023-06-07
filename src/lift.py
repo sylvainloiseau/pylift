@@ -199,15 +199,15 @@ class LiftDoc:
     def get_frequencies(self, field: LiftField, subfield: str = "") -> Union[
             collections.Counter, Dict[str, collections.Counter]]:
         """
-    :param field: the field used for fetching values
-    :param subfield: some field have several values for different langs or different types \
-      In such cases, a subfield (giving a language or type) is necessary to compute a frequency list
-      (see :class:`FieldType`, types `UNIQUE_BY_OBJECT_LANG`, `UNIQUE_BY_META_LANG`, \
-      `UNIQUE_BY_TYPE` and `MULTIPLE_WITH_META_LANG`).
-      If no subfield is given, several frequency lists are computed (one for each subtype)
-    :return: a :class:`collections.Counter` or a dictionary that associates \
-      the available subfields with a :class:`collections.Counter`.
-    """
+        :param field: the field used for fetching values
+        :param subfield: some field have several values for different langs or different types \
+        In such cases, a subfield (giving a language or type) is necessary to compute a frequency list
+        (see :class:`FieldType`, types `UNIQUE_BY_OBJECT_LANG`, `UNIQUE_BY_META_LANG`, \
+        `UNIQUE_BY_TYPE` and `MULTIPLE_WITH_META_LANG`).
+        If no subfield is given, several frequency lists are computed (one for each subtype)
+        :return: a :class:`collections.Counter` or a dictionary that associates \
+        the available subfields with a :class:`collections.Counter`.
+        """
         items = self.get_values(field)
         # data frame contain MultiIndex column index
         # by selecting with field.name only (on the
@@ -242,30 +242,52 @@ class LiftDoc:
 
     def get_object_languages(self) -> Set[str]:
         """
-    The object languages used in the document are the language codes used in `@lang`\
-        attribute of `form` elements.
-    :return: a set of languages code
-    """
+        The object languages used in the document are the language codes used in `@lang`\
+            attribute of `form` elements.
+        :return: a set of languages code
+        """
         return self.object_languages
 
     def get_meta_languages(self) -> Set[str]:
         """
-    The meta languages used in the document are the language codes used in `@lang`\
-        attribute of all elements but the `form` elements.
-    :return: a set of languages code
-    """
+        The meta languages used in the document are the language codes used in `@lang`\
+            attribute of all elements but the `form` elements.
+        :return: a set of languages code
+        """
         return self.meta_languages
+    
+    def get_subfields(self, field: LiftField) -> Tuple[str, List[str]]:
+        """
+        For a field having subfield, search actual values. For instance,
+        for a field "form", the subfield is the language codes used in
+        the dictionary for describing forms. For a field such as "note",
+        where several notes can be given as long as they have different
+        "@type" attribute, the subfield is the various value of "@type".
+
+        :return: a tuple where the first element is the subfield name (lang or type),
+        and the second element the subfield values.
+        """
+        has_subfield = field.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
+                    or field.field_type == FieldType.UNIQUE_BY_META_LANG \
+                    or field.field_type == FieldType.UNIQUE_BY_TYPE \
+                    or field.field_type == FieldType.MULTIPLE_WITH_META_LANG
+        if not has_subfield:
+            raise Exception(f"The field {field.name} does not has subfield")
+        v = self.get_values(field)
+        subfields = list(v.columns.get_level_values(1))
+        subfield_name = v.columns.names[1]
+        return (subfield_name, subfields)
 
     def get_values(self, field: LiftField) -> pd.DataFrame:
         """
-    Compute the list of the values for a given field: the list of forms, or glosses, etc.
-    :return: a :class:`pd.DataFrame` containing each value, together with the indice \
-      of the level occurrence it belongs to; some fields may return a data frame with more columns,\
-      corresponding to the values of the `@type` attributes or of the `@lang` attributes (see :class:`FieldType`).\
-      The data frame contains a multiIndex columns index, where the first level\
-      give the field name and the second level the subfield name (lang or type), or
-      an empty string if there is no subfield.
-    """
+        Compute the list of the values for a given field: the list of forms, or glosses, etc.
+        :return: a :class:`pd.DataFrame` containing each value, together with the indice \
+        of the level occurrence it belongs to; some fields may return a data frame with more columns,\
+        corresponding to the values of the `@type` attributes or of the `@lang` attributes (see :class:`FieldType`).\
+        The data frame contains a multiIndex columns index, where the first level\
+        give the field name and the second level the subfield name (lang or type), or
+        an empty string if there is no subfield.
+        """
         level = field.level
 
         # Collect the XML elements of the field.

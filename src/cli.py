@@ -38,21 +38,29 @@ def _count_callback(arg: argparse.Namespace) -> None:
                    or field.field_type == FieldType.UNIQUE_BY_META_LANG \
                    or field.field_type == FieldType.UNIQUE_BY_TYPE \
                    or field.field_type == FieldType.MULTIPLE_WITH_META_LANG
-    if has_subfield and not arg.subfield:
-        _exit_with_error_msg(f"The field '{field.name}' need a --subfield argument")
-    elif not has_subfield and arg.subfield:
-        _exit_with_error_msg(f"The field '{field.name}' does not have subfield (it can't take a --subfield argument)")
-    if not arg.subfield:
-        freq = lift.get_frequencies(field, arg.subfield)
-    else:
+    if has_subfield:
         freq_by_subfield = lift.get_frequencies(field)
-        if arg.subfield not in freq_by_subfield:
-            _exit_with_error_msg(
-                f"The field '{field.name}' have no '{arg.subfield}' subfield. Possible subfield(s): {', '.join(freq_by_subfield.keys())}")
-        freq = freq_by_subfield[arg.subfield]
+        if not arg.subfield:
+            if len(freq_by_subfield.keys()) == 1:
+                freq = freq_by_subfield[list(freq_by_subfield.keys())[0]]
+            else:
+                _exit_with_error_msg(f"The field '{field.name}' need a --subfield argument. Possible values are: {', '.join(freq_by_subfield.keys())}")
+        else:
+            if arg.subfield not in freq_by_subfield:
+                _exit_with_error_msg(
+                    f"The field '{field.name}' have no '{arg.subfield}' subfield. Possible subfield(s): {', '.join(freq_by_subfield.keys())}"
+                )
+            freq = freq_by_subfield[arg.subfield]
+  
+    elif not arg.subfield:
+        if arg.subfield:
+            _exit_with_error_msg(f"The field '{field.name}' does not have subfield (it can't take a --subfield argument)")
+        freq = lift.get_frequencies(field, arg.subfield)
     df = pd.DataFrame.from_dict(freq, orient="index")
-    print(df, file=arg.output)
-
+    if arg.output == sys.stdout and arg.output.isatty() and not arg.dir:
+        print(df, file=arg.output)
+    else:
+        df.to_csv(arg.output)
 
 def _get_subfield_callback(arg: argparse.Namespace) -> None:
     fieldname = arg.field
@@ -62,12 +70,16 @@ def _get_subfield_callback(arg: argparse.Namespace) -> None:
                    or field.field_type == FieldType.UNIQUE_BY_TYPE \
                    or field.field_type == FieldType.MULTIPLE_WITH_META_LANG
     if not has_subfield:
-        _exit_with_error_msg(f"The field {field.name} does not accept subfield")
+        _exit_with_error_msg(f"The field {field.name} does not has subfield")
     lift = LiftDoc(arg.filename)
-    v = lift.get_values(field)
-    subfields = list(v.columns.get_level_values(1))
-    for subfield in subfields:
-        print(subfield, file=arg.output)
+    subfield_spec = lift.get_subfields(field)
+    subfield_name = subfield_spec[0]
+    subfield_values = subfield_spec[1]
+    with open(arg.output, "w") as f:
+        print(subfield_name, file=f)
+        print("====", file=f)
+        for subfield_v in subfield_values:
+            print(subfield_v, file=f)
 
 
 def _convert_callback(arg: argparse.Namespace) -> None:
@@ -80,16 +92,14 @@ def _convert_callback(arg: argparse.Namespace) -> None:
         _exit_with_error_msg(
             f"Can't used {arg.aggresep} as aggregation (secondary) separator (it is the value separator in CSV)")
     table = TableSet(lift, fields)
+    a = AggregatedTable(table, arg.aggregate, inner_sep=arg.aggresep)
     if arg.output == sys.stdout and arg.output.isatty() and not arg.dir:
-        a = AggregatedTable(table, arg.aggregate, inner_sep=arg.aggresep)
         df = a.get_table()
         print(df, file=arg.output)
     else:
         if arg.format == "csv":
-            a = AggregatedTable(table, arg.aggregate, inner_sep=arg.aggresep)
             a.to_csv(arg.output)
         elif arg.format == "CLDFWordlist":
-            a = AggregatedTable(table, arg.aggregate, inner_sep=arg.aggresep)
             a.to_cldf_Wordlist(arg.dir)
         else:
             _exit_with_error_msg(f"Unknown output type: '{arg.format}'")
