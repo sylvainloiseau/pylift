@@ -1,7 +1,7 @@
 import argparse
 import sys
-from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftField
-from pylift.table import TableSet, AggregatedTable
+from .lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftField
+from .table import TableSet, AggregatedTable
 import os
 import pandas as pd
 from typing import List

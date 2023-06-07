@@ -1,4 +1,4 @@
-from cli import liftlex
+from pylift.cli import liftlex
 import sys
 import logging
 
@@ -48,6 +48,11 @@ def test_aggregate(capsys, caplog, tmp_path):
                    capsys, caplog, tmp_path)
     assert "road;skin" in out
 
+def test_aggregate_at_sense_level(capsys, caplog, tmp_path):
+    out = _run_cli(["liftlex", "convert", "--field=form,gloss,semanticdomain", "-g", "--format=csv", "tests/data/lift_with_semantic_domain.lift"],
+                   capsys, caplog, tmp_path)
+    #print(out)
+    assert "1.2 World" in out
 
 def test_aggregate_not(capsys, caplog, tmp_path):
     out = _run_cli(["liftlex", "convert", "--field=ID,gloss,form", "--format=csv", "tests/data/tiny.lift"], capsys,

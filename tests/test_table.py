@@ -1,5 +1,5 @@
-from lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
-from table import TableSet, AggregatedTable
+from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
+from pylift.table import TableSet, AggregatedTable
 import pytest
 import lxml.etree as ET
 import sys

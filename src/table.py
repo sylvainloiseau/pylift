@@ -1,4 +1,4 @@
-from pylift.lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
+from .lift import LiftDoc, LiftLevel, LiftVocabulary, LiftField
 from typing import List, Dict
 import pandas as pd
 from cldfbench import CLDFSpec, CLDFWriter
