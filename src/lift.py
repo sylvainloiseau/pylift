@@ -66,23 +66,23 @@ class LiftLevel(Enum):
 @dataclass(frozen=True)
 class LiftFieldSpec:
     """
-  A lift field (i.e. a piece of information in the dictionary, such as the forms of the entries,
-  or the glosses of the senses, etc.). A field is defined as:
+    A lift field (i.e. a piece of information in the dictionary, such as the forms of the entries,
+    or the glosses of the senses, etc.). A field is defined as:
 
-  :param name: the name of the field, used for refering to the field from the command line or in
-    outputs.
-  :param node_xpath: an XPath expression, relative to the level (see param level below), and pointing to the nodes containing the value.\
-    For instance the gloss field belongs to the sense level and is accessed through the XPath `gloss` (or `./gloss`)
-  :param value_xpath: an XPath expression that can be wrapped into the `string()` XPath function and will return the \
-    text content we are interested in. The XPath is relative to `node_xpath` nodes. \
-    For the "gloss" field, the content is in a `./text` node.
-  :param level: the level the field belongs to. The "gloss" field belongs to the sense level. See :class:`LiftLevel`.
-  :param field_type: the LIFT Schema defined different field types. See :class:`FieldType`. For instance, the "gloss" field\
-    is of type `FieldType.MULTIPLE_WITH_META_LANG`, which means that there is an `@lang` attribute on the nodes referred\
-    to through `node_xpath` nodes (here, `gloss`) that this attribute contains a reference to a language used in the description\
-    and that several `gloss` element with the same `@lang` value are possible.
-  :param mixed_content: if `True`, the `value_xpath` can contains other XML elements for inline formating (such as `span`).
-  """
+    :param name: the name of the field, used for refering to the field from the command line or in
+        outputs.
+    :param node_xpath: an XPath expression, relative to the level (see param level below), and pointing to the nodes containing the value.\
+        For instance the gloss field belongs to the sense level and is accessed through the XPath `gloss` (or `./gloss`)
+    :param value_xpath: an XPath expression that can be wrapped into the `string()` XPath function and will return the \
+        text content we are interested in. The XPath is relative to `node_xpath` nodes. \
+        For the "gloss" field, the content is in a `./text` node.
+    :param level: the level the field belongs to. The "gloss" field belongs to the sense level. See :class:`LiftLevel`.
+    :param field_type: the LIFT Schema defined different field types. See :class:`FieldType`. For instance, the "gloss" field\
+        is of type `FieldType.MULTIPLE_WITH_META_LANG`, which means that there is an `@lang` attribute on the nodes referred\
+        to through `node_xpath` nodes (here, `gloss`) that this attribute contains a reference to a language used in the description\
+        and that several `gloss` element with the same `@lang` value are possible.
+    :param mixed_content: if `True`, the `value_xpath` can contains other XML elements for inline formating (such as `span`).
+    """
     name: str
     node_xpath: str
     value_xpath: str
@@ -172,18 +172,18 @@ class LiftVocabulary:
 
 class LiftDoc:
     """
-  A lift document together with methods for fetching the values of its fields,
-  validating the XML content, and extracting various pieces of information
-  """
+    A lift document together with methods for fetching the values of its fields,
+    validating the XML content, and extracting various pieces of information
+    """
 
     def __init__(self, filename: str, inner_sep="/", validate=False):
         """
-    :param filename: the Lift XML document file name
-    :param inner_sep: the separator to be used when aggregating values of a fields \
-      that have multiple values (for instance, several notes on the same entry).\
-      see :class:`FieldType`, types `MULTIPLE` and `MULTIPLE_WITH_META_LANG`. 
-    :param validate: `bool` flag signaling whether to validate the document
-    """
+        :param filename: the Lift XML document file name
+        :param inner_sep: the separator to be used when aggregating values of a fields \
+        that have multiple values (for instance, several notes on the same entry).\
+        see :class:`FieldType`, types `MULTIPLE` and `MULTIPLE_WITH_META_LANG`. 
+        :param validate: `bool` flag signaling whether to validate the document
+        """
         self.filename: str = filename
         self.inner_sep: str = inner_sep
         self.dictionary: ET._ElementTree = ET.parse(self.filename)
