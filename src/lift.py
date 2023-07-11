@@ -2,7 +2,7 @@ import pkgutil
 import collections
 import logging
 from typing import Union, List, Tuple, Dict, Set, cast
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from io import StringIO
 from lxml import etree as ET
@@ -12,32 +12,32 @@ LOGGER = logging.getLogger(__name__)
 
 class FieldType(Enum):
     """
-  Field types distinguished in the LIFT schema:
+    Field types distinguished in the LIFT schema:
 
-  - some fields are unique (only one morph type for each lexical entry, only one ID for each
-    lexical entry...)
-  - Some fields can be repeated as long as they have a @lang attribute with different values
-    (refering to an object language). See the "multitext-content" type in the RNG schema of
-    lift document)
-       - eg. the element "definition", or "lexical-unit" .
-       - In those cases, the element (eg "definition") contains an element "form" (with the
-         attribute @lang) that itself contains an element "text". Several definition can be
-         given, but with different value for the "@lang" attribute.
-       - all "form" elements in a LIFT document are serving this purpose
-  - Some fields can be repeated as long as they have a @type attribute with different values.
-    see the "field-content" type in the RNG schema of lift document.
-       - eg. elements "note", "trait".
-       - in those cases, the element (eg "note") contains an element "field" with the attribute
-         '@type'
-       - all elements "field" (but in the header element) are serving this purpose.
-  - Some fields can be repeated without condition
-       - e.g. element "?". The values for such field are concatenated into one string.
-  - Some fields can be repeated but do have a @lang attribute
-       - e.g. element "gloss" (contains an attribute @lang and an element text, but several
-         gloss with the same value for @lang can exist)
-         the values for such field are concatenated when there are several elements with the
-         same value for @lang
-  """
+    - some fields are unique (only one morph type for each lexical entry, only one ID for each
+        lexical entry...)
+    - Some fields can be repeated as long as they have a @lang attribute with different values
+        (refering to an object language). See the "multitext-content" type in the RNG schema of
+        lift document)
+        - eg. the element "definition", or "lexical-unit" .
+        - In those cases, the element (eg "definition") contains an element "form" (with the
+            attribute @lang) that itself contains an element "text". Several definition can be
+            given, but with different value for the "@lang" attribute.
+        - all "form" elements in a LIFT document are serving this purpose
+    - Some fields can be repeated as long as they have a @type attribute with different values.
+        see the "field-content" type in the RNG schema of lift document.
+        - eg. elements "note", "trait".
+        - in those cases, the element (eg "note") contains an element "field" with the attribute
+            '@type'
+        - all elements "field" (but in the header element) are serving this purpose.
+    - Some fields can be repeated without condition
+        - e.g. element "?". The values for such field are concatenated into one string.
+    - Some fields can be repeated but do have a @lang attribute
+        - e.g. element "gloss" (contains an attribute @lang and an element text, but several
+            gloss with the same value for @lang can exist)
+            the values for such field are concatenated when there are several elements with the
+            same value for @lang
+    """
 
     UNIQUE = 1
     UNIQUE_BY_OBJECT_LANG = 2
@@ -49,11 +49,20 @@ class FieldType(Enum):
     def __str__(self):
         return self.name
 
+class LiftSubfieldType(Enum):
+    """
+    Lift fields that have subfield (such as `form`, `note`, etc.)
+    (see :class:`FieldType`) can have either a `@lang` or a `@note` attribute
+    that partition the values.
+    """
+
+    LANG = 0
+    TYPE = 1
 
 class LiftLevel(Enum):
     """
-   Level are main node types on which fields are attached
-   """
+    Level are the main nodes on which fields are attached
+    """
     ENTRY = 1
     SENSE = 2
     EXAMPLE = 3
@@ -62,8 +71,7 @@ class LiftLevel(Enum):
     def __str__(self):
         return self.name
 
-
-@dataclass(frozen=True)
+@dataclass()
 class LiftFieldSpec:
     """
     A lift field (i.e. a piece of information in the dictionary, such as the forms of the entries,
@@ -75,7 +83,7 @@ class LiftFieldSpec:
         For instance the gloss field belongs to the sense level and is accessed through the XPath `gloss` (or `./gloss`)
     :param value_xpath: an XPath expression that can be wrapped into the `string()` XPath function and will return the \
         text content we are interested in. The XPath is relative to `node_xpath` nodes. \
-        For the "gloss" field, the content is in a `./text` node.
+        For the `gloss` field, the content is in a `./text` node.
     :param level: the level the field belongs to. The "gloss" field belongs to the sense level. See :class:`LiftLevel`.
     :param field_type: the LIFT Schema defined different field types. See :class:`FieldType`. For instance, the "gloss" field\
         is of type `FieldType.MULTIPLE_WITH_META_LANG`, which means that there is an `@lang` attribute on the nodes referred\
@@ -90,6 +98,34 @@ class LiftFieldSpec:
     field_type: FieldType
     mixed_content: bool
     description: str
+    # deduced from field_type during post_init
+    subfieldType: LiftSubfieldType = field(init=False)
+    # deduced from field_type during post_init
+    has_subfield: bool = field(init=False)
+
+    def __post_init__(self):
+        if self.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
+            or self.field_type == FieldType.UNIQUE_BY_META_LANG \
+            or self.field_type == FieldType.MULTIPLE_WITH_META_LANG:
+                self.subfieldType = LiftSubfieldType.LANG
+        elif self.field_type == FieldType.UNIQUE_BY_TYPE:
+            self.subfieldType = LiftSubfieldType.LANG
+        elif self.field_type == FieldType.UNIQUE\
+            or self.field_type == FieldType.MULTIPLE:
+            self.subfieldType = None
+        else:
+            raise Exception(f"Unknown field type: {self.field_type}")
+
+        if self.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
+                    or self.field_type == FieldType.UNIQUE_BY_META_LANG \
+                    or self.field_type == FieldType.UNIQUE_BY_TYPE \
+                    or self.field_type == FieldType.MULTIPLE_WITH_META_LANG:
+            self.has_subfield = True
+        elif self.field_type == FieldType.MULTIPLE \
+                    or self.field_type == FieldType.UNIQUE:
+            self.has_subfield = False
+        else:
+            raise Exception(f"Unknown field type: {self.field_type}")
 
 
 class LiftVocabulary:
@@ -123,6 +159,10 @@ class LiftVocabulary:
         LiftFieldSpec("form",        "lexical-unit/form",         "text",
                   LiftLevel.ENTRY,   FieldType.UNIQUE_BY_OBJECT_LANG, True,
                   "lexem citation form"
+                  ),
+        LiftFieldSpec("homonym_n",        ".",         "@order",
+                  LiftLevel.ENTRY,   FieldType.UNIQUE, False,
+                  "Number for ordering homonyms"
                   ),
         LiftFieldSpec("variantform", "form",                      ".",
                   LiftLevel.VARIANT, FieldType.UNIQUE_BY_OBJECT_LANG, True,
@@ -167,7 +207,7 @@ class LiftVocabulary:
 
     ]
 
-    LIFT_FIELD_SPEC = {field.name: field for field in LIFT_FIELD_SPEC_LIST}
+    LIFT_FIELD_SPEC_DIC = {field.name: field for field in LIFT_FIELD_SPEC_LIST}
 
 
 class LiftDoc:
@@ -187,7 +227,9 @@ class LiftDoc:
         self.filename: str = filename
         self.inner_sep: str = inner_sep
         self.dictionary: ET._ElementTree = ET.parse(self.filename)
+        
         self._cached_nodes_by_level: Dict[LiftLevel, List[ET.Element]] = {}
+        
         self.object_languages: Set[str] = set(
             self.dictionary.xpath("/lift/entry//form/@lang"))
         self.meta_languages: Set[str] = set(self.dictionary.xpath(
@@ -259,12 +301,12 @@ class LiftDoc:
     def get_subfields(self, field: LiftFieldSpec) -> Tuple[str, List[str]]:
         """
         For a field having subfield, search actual values. For instance,
-        for a field "form", the subfield is the language codes used in
-        the dictionary for describing forms. For a field such as "note",
+        for a field `form`, the subfield is the language codes used in
+        the dictionary for describing forms. For a field such as `note`,
         where several notes can be given as long as they have different
-        "@type" attribute, the subfield is the various value of "@type".
+        `@type` attribute, the subfield is the various value of `@type`.
 
-        :return: a tuple where the first element is the subfield name (lang or type),
+        :return: a tuple where the first element is the subfield name (`lang` or `type`),
         and the second element the subfield values.
         """
         has_subfield = field.field_type == FieldType.UNIQUE_BY_OBJECT_LANG \
