@@ -17,7 +17,7 @@ class TestLift():
         """
         caplog.set_level(logging.INFO)
         lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
-        f = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC["form"])
+        f = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC_DIC["form"])
         LOGGER.info(f)
         assert isinstance(f, dict)
         assert len(f) == 1
@@ -32,7 +32,7 @@ class TestLift():
         Without the subfield arg, must return a dict {subflied -> collections.Counter}
         """
         lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
-        counter = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC["form"], "tww")
+        counter = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC_DIC["form"], "tww")
         assert isinstance(counter, collections.Counter)
         assert len(counter) == 2
         assert counter["efe"] == 1
@@ -41,21 +41,21 @@ class TestLift():
     def test_get_frequencies_with_exception(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
         with pytest.raises(Exception):
-            counter = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC["form"], "not_existing_subfield")
+            counter = lift.get_frequencies(LiftVocabulary.LIFT_FIELD_SPEC_DIC["form"], "not_existing_subfield")
 
 
     def test_get_value(self, capsys, tmp_path) -> None:
         lift: LiftDoc = LiftDoc("tests/data/FlexLiftExport.lift")
         assert lift.get_n(LiftLevel.ENTRY) == 182
 
-        val = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
+        val = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["ID"])
         assert len(val) == 182
 
 
     # No field is clearly repeatable (with the same language)
     # def test_get_value_with_aggregation(capsys, tmp_path):
     #    lift:LiftDoc = LiftDoc("tests/data/FlexLiftExport.lift")
-    #    #assert not LiftVocabulary.LIFT_FIELD_SPEC["category"]["unique"] # otherwise the test is meaningless
+    #    #assert not LiftVocabulary.LIFT_FIELD_SPEC_DIC["category"]["unique"] # otherwise the test is meaningless
     #    val = lift.get_values("category")
     #    #with open("testlist.txt", "w") as f:
     #    #  print(val, file=f)
@@ -72,13 +72,13 @@ class TestLift():
 
     def test__example_empty(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny_example_empty.lift")
-        f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["example"])
+        f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["example"])
         n = lift.get_n(LiftLevel.EXAMPLE)
         assert len(f) == n
 
     def test__example(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny_with_example.lift")
-        f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["example"])
+        f = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["example"])
         n = lift.get_n(LiftLevel.EXAMPLE)
         assert len(f) == n
 
@@ -135,7 +135,7 @@ class TestLift():
 
     def test__get_values_UNIQUE(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
-        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
+        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["ID"])
         assert len(x) == lift.get_n(LiftLevel.ENTRY)
         assert isinstance(x, pd.DataFrame)
         # assert isinstance(x[0], str)
@@ -143,7 +143,7 @@ class TestLift():
 
     def test__get_values_UNIQUE_BY_OBJECT_LANG(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny.lift")
-        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["form"])
+        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["form"])
         assert len(x) == lift.get_n(LiftLevel.ENTRY)
         assert isinstance(x, pd.DataFrame)
         assert x.iloc[0][("form", "tww")] == "efe"
@@ -151,14 +151,14 @@ class TestLift():
 
     def test__get_values_MULTIPLE_WITH_META_LANG(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/tiny_with_multiple_gloss.lift", inner_sep=" ~ ")
-        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["gloss"])
+        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["gloss"])
         assert isinstance(x, pd.DataFrame)
         assert len(x) == 4
         assert x.iloc[0][("gloss", "en")] == "road ~ path"
 
     def test__get_values_semantic_domains(self) -> None:
         lift: LiftDoc = LiftDoc("tests/data/lift_with_semantic_domain.lift", inner_sep=" ~ ")
-        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["semanticdomain"])
+        x = lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["semanticdomain"])
         #print(x)
         assert isinstance(x, pd.DataFrame)
         #assert len(x) == 15
@@ -168,12 +168,12 @@ class TestLift():
 
     # def test__get_values_UNIQUE_BY_META_LANG():
     #   lift:LiftDoc = LiftDoc("tests/data/tiny_sense_id_missing.lift")
-    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
+    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["ID"])
 
     # def test__get_values_UNIQUE_BY_TYPE():
     #   lift:LiftDoc = LiftDoc("tests/data/tiny_sense_id_missing.lift")
-    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
+    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["ID"])
 
     # def test__get_values_MULTIPLE():
     #   lift:LiftDoc = LiftDoc("tests/data/tiny_sense_id_missing.lift")
-    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC["ID"])
+    #   lift.get_values(LiftVocabulary.LIFT_FIELD_SPEC_DIC["ID"])

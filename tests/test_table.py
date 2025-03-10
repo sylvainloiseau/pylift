@@ -77,5 +77,5 @@ def test_merge_large(capsys, tmp_path) -> None:
 
 
 def _get_fields(fieldnames:List[str]) -> List[LiftFieldSpec]:
-   return [ LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
+   return [ LiftVocabulary.LIFT_FIELD_SPEC_DIC[fieldname] for fieldname in fieldnames]
 

@@ -5,3 +5,5 @@ cldf
 .idea
 pylift.egg-info
 tests/__pycache__
+build
+src/__pycache__

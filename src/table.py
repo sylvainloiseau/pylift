@@ -16,7 +16,7 @@ class TableSet:
         """
     Create a table set defined by a specification of the kind of data to be extracted from a lift document.
     :param lift: a lift document (:class: `LiftDoc`)
-    :param fields: the data to extract from the dictionary (see `LiftVocabulary.LIFT_FIELD_SPEC`)
+    :param fields: the data to extract from the dictionary (see `LiftVocabulary.LIFT_FIELD_SPEC_DIC`)
     """
         self.lift: LiftDoc = lift
         self.fields: List[LiftFieldSpec] = fields
@@ -44,7 +44,7 @@ class TableSet:
     def _create_table(self, level: LiftLevel) -> None:
         # TODO resume here
         # verify_integrity
-        # x = [LiftVocabulary.LIFT_FIELD_SPEC[f]["unique"] for f in self.fields_by_level[level]]
+        # x = [LiftVocabulary.LIFT_FIELD_SPEC_DIC[f]["unique"] for f in self.fields_by_level[level]]
 
         n = self.lift.get_n(level)
         index = list(range(0, n))

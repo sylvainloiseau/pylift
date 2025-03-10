@@ -4,13 +4,17 @@ from .lift import LiftDoc, LiftLevel, LiftVocabulary, FieldType, LiftFieldSpec
 from .table import TableSet, AggregatedTable
 import os
 import pandas as pd
-from typing import List
+from typing import List, Tuple
 import logging
 from pathlib import Path
+import re
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.FileHandler(os.path.expanduser(Path("~/.pylift.log"))))
 
+# Type aliases
+FieldName = str
+SubFieldName = str
 
 def _validate_callback(arg: argparse.Namespace) -> None:
     lift = LiftDoc(arg.filename)
@@ -27,7 +31,8 @@ def _values_callback(arg: argparse.Namespace) -> None:
     fieldname = arg.field
     field = _get_field_if_field_exist(fieldname)
     df = lift.get_values(field)
-    print(df, file=arg.output)
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    	print(df, file=arg.output)
 
 
 def _count_callback(arg: argparse.Namespace) -> None:
@@ -106,7 +111,7 @@ def _convert_callback(arg: argparse.Namespace) -> None:
 
 
 def _fields_callback(arg: argparse.Namespace) -> None:
-    fields_spec = LiftVocabulary.LIFT_FIELD_SPEC
+    fields_spec = LiftVocabulary.LIFT_FIELD_SPEC_DIC
     df = pd.DataFrame.from_dict(fields_spec, orient="index")
     print(df.to_string(index=False), file=arg.output)
 
@@ -132,16 +137,30 @@ def _exit_with_error_msg(msg: str) -> None:
     sys.exit()
 
 
-def _get_fields_if_fields_exist(fieldnames: List[str]) -> List[LiftFieldSpec]:
-    if not set(fieldnames).issubset(LiftVocabulary.LIFT_FIELD_SPEC.keys()):
-        _exit_with_error_msg('Unknown field(s): %r' % sorted(set(fieldnames).difference(LiftVocabulary.LIFT_FIELD_SPEC.keys())))
-    return [LiftVocabulary.LIFT_FIELD_SPEC[fieldname] for fieldname in fieldnames]
+def _get_fields_if_fields_exist(fieldnames: List[FieldName]) -> List[LiftFieldSpec]:
+    if not set(fieldnames).issubset(LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys()):
+        _exit_with_error_msg('Unknown field(s): %r' % sorted(set(fieldnames).difference(LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys())))
+    return [LiftVocabulary.LIFT_FIELD_SPEC_DIC[fieldname] for fieldname in fieldnames]
 
+def _parse_fields_arg(fields:str) -> List[Tuple[FieldName, List[SubFieldName]]]:
+    field_spec_list: List[str] = fields.split(";")
+    res = []
+    for fspec in field_spec_list:
+        m = re.match(r"([A-Za-z0-9_]+)(?:\[([A-Za-z0-9_,]+)\])?", fspec)
+        if m is None:
+            # TODO
+            raise Exception(f"'{fspec}' is not a valid field description. Availables fields are {', '.join(list(LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys()))}")
+        field = m.group(1)
+        subfield = m.group(2)
+        if subfield is not None:
+            subfieldlist = subfield.split(",")
+        res.append((field, subfieldlist))
+    return res
 
-def _get_field_if_field_exist(fieldname: str) -> LiftFieldSpec:
-    if not fieldname in LiftVocabulary.LIFT_FIELD_SPEC:
+def _get_field_if_field_exist(fieldname: FieldName) -> LiftFieldSpec:
+    if not fieldname in LiftVocabulary.LIFT_FIELD_SPEC_DIC:
         _exit_with_error_msg("Unknown field: '{fieldname}'")
-    return LiftVocabulary.LIFT_FIELD_SPEC[fieldname]
+    return LiftVocabulary.LIFT_FIELD_SPEC_DIC[fieldname]
 
 
 def liftlex() -> None:
@@ -164,19 +183,19 @@ def liftlex() -> None:
     # values of given field subcommand
     v = command_subparser.add_parser('values', help='List the values for the given field')
     v.add_argument('--field', '-f', help='select the field to be listed', default="form",
-                   choices=LiftVocabulary.LIFT_FIELD_SPEC.keys(), required=False, type=str)
+                   choices=LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys(), required=False, type=str)
     v.set_defaults(func=_values_callback)
 
     # _get_subfield_callback
     v = command_subparser.add_parser('subfield', help='List the subfields for the given field')
     v.add_argument('--field', '-f', help='select the field to be listed', default="form",
-                   choices=LiftVocabulary.LIFT_FIELD_SPEC.keys(), required=False, type=str)
+                   choices=LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys(), required=False, type=str)
     v.set_defaults(func=_get_subfield_callback)
 
     # frequency list of given field subcommand
     count = command_subparser.add_parser('count', help='compute frequencies for the given field')
     count.add_argument('--field', '-f', help='select the field to be tabulated', default="category",
-                       choices=LiftVocabulary.LIFT_FIELD_SPEC.keys(), required=False, type=str)
+                       choices=LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys(), required=False, type=str)
     count.add_argument('--subfield', '-s', help='Subfield (lang, or type) or the field, if relevant', default="",
                        required=False, type=str)
     count.set_defaults(func=_count_callback)
@@ -184,7 +203,7 @@ def liftlex() -> None:
     # convert subcommand
     convert = command_subparser.add_parser('convert', help='Convert toward other formats')
     convert.add_argument('--field', '-f', help='commat-separated list of the field(s) to be used', required=True,
-                         type=str)  # , nargs="+", action="extend", choices=LiftVocabulary.LIFT_FIELD_SPEC.keys()
+                         type=str)  # , nargs="+", action="extend", choices=LiftVocabulary.LIFT_FIELD_SPEC_DIC.keys()
     convert.add_argument('--format', '-a', help='select the output format', default="CLDFWordlist",
                          choices=["csv", "CLDFWordlist", "CLDFDictionary"], required=True, type=str)
     convert.add_argument('--aggregate', '-g', help='aggregate rows on same object', action='store_true')
